@@ -7,12 +7,10 @@ import Confetti from "react-confetti";
 import { InjectedConnector } from "@web3-react/injected-connector";
 import { useWeb3React } from "@web3-react/core";
 
-import { Contract } from "@ethersproject/contracts";
 import { isAddress } from "@ethersproject/address";
 
-import erc20 from "../../abi/erc20.contract.json";
-
 import styled from "styled-components";
+import useSWR from "swr";
 
 const Center = styled.div`
   position: absolute;
@@ -33,24 +31,19 @@ const Button = styled.button`
   width: 100%;
 `;
 
-async function fetchAlias(address: string) {
-  const data = await fetch(
-    "https://meta.yearn.network/tokens/token.aliases.json"
-  )
-    .then((res) => res.json())
-    .then((res) => res.map((alias) => [alias.address, alias]))
-    .then((res) => Object.fromEntries(res));
-  return data[address];
-}
+const fetcher = (...args: Parameters<typeof fetch>) =>
+  fetch(...args).then((res) => res.json());
 
 function Add(): JSX.Element {
   const router = useRouter();
-  const { address, redirect } = useMemo(
-    () => ({
-      address: String(router.query.address),
-      redirect: String(router.query.redirect),
-    }),
-    [router]
+  const { address, redirect } = router.query as {
+    address: string;
+    redirect: string;
+  };
+
+  const { data: token, error } = useSWR(
+    address && `/api/info/${address}`,
+    fetcher
   );
 
   const { library, active, activate } = useWeb3React();
@@ -59,11 +52,6 @@ function Add(): JSX.Element {
 
   const [loading, setLoading] = useState(false);
   const [complete, setComplete] = useState(false);
-
-  const image = useMemo(
-    () => `https://meta.yearn.network/tokens/${address}/logo-128.png`,
-    [address]
-  );
 
   const redirectUrl = useMemo(() => redirect && decodeURIComponent(redirect), [
     redirect,
@@ -81,14 +69,8 @@ function Add(): JSX.Element {
   }, [active, activate]);
 
   const addToken = useCallback(async () => {
-    if (active) {
+    if (active && token) {
       setLoading(true);
-      const contract = new Contract(address, erc20, library);
-      const alias = await fetchAlias(address);
-      const name = alias ? alias.name : await contract.name();
-      const symbol = alias ? alias.symbol : await contract.symbol();
-      const decimals = await contract.decimals();
-      const token = { name, symbol, decimals, image, address };
       const response = await library.provider.request({
         method: "wallet_watchAsset",
         params: {
@@ -101,15 +83,23 @@ function Add(): JSX.Element {
       if (response && redirectUrl) {
         setTimeout(() => {
           window.location.href = redirectUrl;
-        }, 5000);
+        }, 3000);
       }
     }
-  }, [active, address, image, library, redirectUrl]);
+  }, [active, library, redirectUrl, token]);
 
   if (!isAddress(address)) {
     return (
       <Center>
-        <p>{address} is not a valid address</p>
+        <p>{address} is not a valid address.</p>
+      </Center>
+    );
+  }
+
+  if (error) {
+    return (
+      <Center>
+        <p>{error.message}</p>
       </Center>
     );
   }
@@ -126,18 +116,18 @@ function Add(): JSX.Element {
         />
       )}
       <Center>
-        <TokenIcon rotate={loading} src={image} />
+        {token && <TokenIcon rotate={loading} src={token.image} />}
         {!active && !complete && (
           <Button disabled={loading} onClick={connect}>
             Connect metamask
           </Button>
         )}
-        {active && !complete && (
+        {active && !complete && token && (
           <Button disabled={loading} onClick={addToken}>
             Add token
           </Button>
         )}
-        {complete && redirect && <p>Redirecting you in 5 seconds...</p>}
+        {complete && redirect && <p>Redirecting you in 3 seconds...</p>}
       </Center>
     </>
   );
