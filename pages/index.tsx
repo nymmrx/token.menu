@@ -1,5 +1,7 @@
 import React from "react";
 
-export default function Home() {
+function Home(): JSX.Element {
   return <h1>huh?</h1>;
 }
+
+export default Home;

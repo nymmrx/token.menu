@@ -1,14 +1,18 @@
 // eslint-disable-next-line no-undef
 module.exports = {
+  root: true,
+  parser: "@typescript-eslint/parser",
   env: {
     browser: true,
     es2021: true,
   },
   extends: [
     "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
-    "plugin:prettier/recommended",
     "plugin:react-hooks/recommended",
+    "plugin:prettier/recommended",
+    "prettier",
   ],
   parserOptions: {
     ecmaFeatures: {
@@ -17,8 +21,13 @@ module.exports = {
     ecmaVersion: 12,
     sourceType: "module",
   },
-  plugins: ["react", "prettier"],
+  plugins: ["react", "@typescript-eslint", "prettier"],
   rules: {
     "react/prop-types": "off",
+  },
+  settings: {
+    react: {
+      version: "17",
+    },
   },
 };

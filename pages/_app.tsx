@@ -1,15 +1,17 @@
 import React from "react";
 
+import { AppProps } from "next/app";
+
 import { Web3ReactProvider } from "@web3-react/core";
-import { Web3Provider } from "@ethersproject/providers";
+import { ExternalProvider, Web3Provider } from "@ethersproject/providers";
 
 import "../styles/globals.css";
 
-function getLibrary(provider) {
+function getLibrary(provider: ExternalProvider) {
   return new Web3Provider(provider);
 }
 
-function MyApp({ Component, pageProps }) {
+function TokenApp({ Component, pageProps }: AppProps): JSX.Element {
   return (
     <Web3ReactProvider getLibrary={getLibrary}>
       <Component {...pageProps} />
@@ -17,4 +19,4 @@ function MyApp({ Component, pageProps }) {
   );
 }
 
-export default MyApp;
+export default TokenApp;

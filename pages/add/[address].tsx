@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 
-import clsx from "clsx";
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
 
@@ -13,9 +12,28 @@ import { isAddress } from "@ethersproject/address";
 
 import erc20 from "../../abi/erc20.contract.json";
 
-import styles from "../../styles/add.module.css";
+import styled from "styled-components";
 
-async function fetchAlias(address) {
+const Center = styled.div`
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+`;
+
+const TokenIcon = styled.img<{ rotate: boolean }>`
+  animation: ${({ rotate }) =>
+    rotate ? "rotation 2s linear infinite" : "none"};
+`;
+
+const Button = styled.button`
+  display: block;
+  margin: 1em 0;
+  width: 100%;
+`;
+
+async function fetchAlias(address: string) {
   const data = await fetch(
     "https://meta.yearn.network/tokens/token.aliases.json"
   )
@@ -25,9 +43,16 @@ async function fetchAlias(address) {
   return data[address];
 }
 
-export default function Add() {
+function Add(): JSX.Element {
   const router = useRouter();
-  const { address, redirect } = router.query;
+  const { address, redirect } = useMemo(
+    () => ({
+      address: String(router.query.address),
+      redirect: String(router.query.redirect),
+    }),
+    [router]
+  );
+
   const { library, active, activate } = useWeb3React();
 
   const { width, height } = useWindowSize();
@@ -75,7 +100,7 @@ export default function Add() {
       setComplete(response);
       if (response && redirectUrl) {
         setTimeout(() => {
-          window.location = redirectUrl;
+          window.location.href = redirectUrl;
         }, 5000);
       }
     }
@@ -83,14 +108,14 @@ export default function Add() {
 
   if (!isAddress(address)) {
     return (
-      <div className={styles.center}>
+      <Center>
         <p>{address} is not a valid address</p>
-      </div>
+      </Center>
     );
   }
 
   return (
-    <div>
+    <>
       {complete && (
         <Confetti
           recycle={false}
@@ -100,28 +125,22 @@ export default function Add() {
           height={height}
         />
       )}
-      <div className={styles.center}>
-        <img className={clsx(loading && styles.rotate)} src={image} />
+      <Center>
+        <TokenIcon rotate={loading} src={image} />
         {!active && !complete && (
-          <button
-            disabled={loading}
-            className={styles.button}
-            onClick={connect}
-          >
+          <Button disabled={loading} onClick={connect}>
             Connect metamask
-          </button>
+          </Button>
         )}
         {active && !complete && (
-          <button
-            disabled={loading}
-            className={styles.button}
-            onClick={addToken}
-          >
+          <Button disabled={loading} onClick={addToken}>
             Add token
-          </button>
+          </Button>
         )}
         {complete && redirect && <p>Redirecting you in 5 seconds...</p>}
-      </div>
-    </div>
+      </Center>
+    </>
   );
 }
+
+export default Add;
