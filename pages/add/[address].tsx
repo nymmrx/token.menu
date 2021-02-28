@@ -1,14 +1,8 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { useRouter } from "next/router";
-
-import useWindowSize from "react-use/lib/useWindowSize";
-import Confetti from "react-confetti";
-
-import { InjectedConnector } from "@web3-react/injected-connector";
-import { useWeb3React } from "@web3-react/core";
-
 import { isAddress } from "@ethersproject/address";
-
+import { useWeb3React } from "@web3-react/core";
+import { InjectedConnector } from "@web3-react/injected-connector";
+import { useRouter } from "next/router";
+import React, { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 import useSWR from "swr";
 
@@ -48,8 +42,6 @@ function Add(): JSX.Element {
 
   const { library, active, activate } = useWeb3React();
 
-  const { width, height } = useWindowSize();
-
   const [loading, setLoading] = useState(false);
   const [complete, setComplete] = useState(false);
 
@@ -62,9 +54,7 @@ function Add(): JSX.Element {
       const injected = new InjectedConnector({
         supportedChainIds: [1],
       });
-      setLoading(true);
       await activate(injected);
-      setLoading(false);
     }
   }, [active, activate]);
 
@@ -105,31 +95,20 @@ function Add(): JSX.Element {
   }
 
   return (
-    <>
-      {complete && (
-        <Confetti
-          recycle={false}
-          gravity={0.4}
-          run={complete}
-          width={width}
-          height={height}
-        />
+    <Center>
+      {token && <TokenIcon rotate={loading} src={token.image} />}
+      {!active && !complete && (
+        <Button disabled={loading} onClick={connect}>
+          Connect metamask
+        </Button>
       )}
-      <Center>
-        {token && <TokenIcon rotate={loading} src={token.image} />}
-        {!active && !complete && (
-          <Button disabled={loading} onClick={connect}>
-            Connect metamask
-          </Button>
-        )}
-        {active && !complete && token && (
-          <Button disabled={loading} onClick={addToken}>
-            Add token
-          </Button>
-        )}
-        {complete && redirect && <p>Redirecting you in 3 seconds...</p>}
-      </Center>
-    </>
+      {active && !complete && token && (
+        <Button disabled={loading} onClick={addToken}>
+          Add token
+        </Button>
+      )}
+      {complete && redirect && <p>Redirecting you in 3 seconds...</p>}
+    </Center>
   );
 }
 

@@ -1,10 +1,9 @@
+import { isAddress } from "@ethersproject/address";
+import { Contract } from "@ethersproject/contracts";
+import { WebSocketProvider } from "@ethersproject/providers";
 import { NextApiRequest as Req, NextApiResponse as Res } from "next";
 
-import { WebSocketProvider } from "@ethersproject/providers";
-import { Contract } from "@ethersproject/contracts";
-
 import erc20 from "../../../abi/erc20.contract.json";
-import { isAddress } from "@ethersproject/address";
 
 const YearnMetaAliasURL =
   "https://meta.yearn.network/tokens/token.aliases.json";

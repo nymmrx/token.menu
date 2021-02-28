@@ -1,6 +1,5 @@
-import React from "react";
 import Document, { DocumentContext, DocumentInitialProps } from "next/document";
-
+import React from "react";
 import { ServerStyleSheet } from "styled-components";
 
 class TokenDocument extends Document {
